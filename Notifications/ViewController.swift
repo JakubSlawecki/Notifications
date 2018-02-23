@@ -7,19 +7,93 @@
 //
 
 import UIKit
+import UserNotifications
 
 class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+    
+                            // 1. Request Permission
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound], completionHandler: { (granted, error) in
+            
+            if granted {
+                print ("Notification access granted")
+            } else {
+                print (error?.localizedDescription)
+            }
+        })
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    
+    
+    @IBAction func notifyButtonPressed(_ sender: UIButton) {
+        
+        scheduleNotification(inSeconds: 7, completion: { success in
+            if success {
+                print("Successfully scheduled notification")
+            } else {
+                print("Error scheduling nitification")
+            }
+        })
     }
-
-
+    
+    func scheduleNotification(inSeconds: TimeInterval, completion: @escaping (_ Success: Bool) -> ()) {
+        // Add an attachment
+        let myImage = "gazetka"
+        guard let imageURL = Bundle.main.url(forResource: myImage, withExtension: "jpg") else {
+            completion(false)
+            return
+        }
+        
+        var attachment: UNNotificationAttachment
+        
+        attachment = try! UNNotificationAttachment(identifier: "myNotification", url: imageURL, options: .none)
+        
+        let notif = UNMutableNotificationContent()
+        
+        // Only for extension
+        notif.categoryIdentifier = "myNotificationCategory"
+        
+        notif.title = "New Notification"
+        notif.subtitle = "This is Great!!!"
+        notif.body = "The new notification options in iOS, well I hope they are working just fine ;)"
+        notif.attachments = [attachment]
+        
+        let notifTrigger = UNTimeIntervalNotificationTrigger(timeInterval: inSeconds, repeats: false)
+        
+        let request = UNNotificationRequest(identifier: "myNotification", content: notif, trigger: notifTrigger)
+        
+        
+        UNUserNotificationCenter.current().add(request, withCompletionHandler: { error in
+            if error != nil {
+                print(error)
+                completion(false)
+            } else {
+                completion(true)
+            }
+        })
+    }
+    
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
